@@ -29,7 +29,7 @@ public class ScatterplotBehaviour : MonoBehaviour
 
     private void PlotFakeData()
     {
-        int pointsCount = 100000;
+        int pointsCount = 20000;
 
         Vector4[] positions = new Vector4[pointsCount];
         Vector4[] colors = new Vector4[pointsCount];
