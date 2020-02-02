@@ -17,7 +17,7 @@ public class ImmVisWebsocketManager : UnityDispatcherBehaviour
     {
         get
         {
-            return webSocket != null && webSocket.ReadyState == WebSocketState.Open;
+            return webSocket?.ReadyState == WebSocketState.Open;
         }
     }
     public event ClientConnectedAction Connected;
@@ -47,7 +47,7 @@ public class ImmVisWebsocketManager : UnityDispatcherBehaviour
 
     public void ReleaseClient()
     {
-        if (IsConnected || webSocket.ReadyState == WebSocketState.Connecting)
+        if (IsConnected || webSocket?.ReadyState == WebSocketState.Connecting)
         {
             Disconnected?.Invoke();
             webSocket.OnMessage -= HandleWebsocketMessage;

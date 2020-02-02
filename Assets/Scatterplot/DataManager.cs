@@ -8,11 +8,34 @@ public class DataManager : MonoBehaviour
 
     public ImmVisWebsocketManager WebsocketManager;
 
+    public ImmVisDiscoveryManager DiscoveryManager;
+
+    public bool ShouldUseDiscoveryService = true;
+
 
     void Start()
     {
         RegisterMessageTypes();
-        InitializeWebsocketClient();
+
+        if(ShouldUseDiscoveryService && DiscoveryManager != null)
+        {
+            DiscoveryManager.DiscoveryFinished += DiscoveryFinished;
+            DiscoveryManager.StartDiscovery(shouldReturnOnFirstOccurrence: true);
+            Debug.Log("Discovery has started!");
+        }
+        else
+        {
+            InitializeWebsocketClient();
+        }
+    }
+
+    private void DiscoveryFinished(List<string> availableServersIps)
+    {
+        if(availableServersIps.Count > 0)
+        {
+            WebsocketManager.ServerAddress = availableServersIps[0];
+            InitializeWebsocketClient();
+        }
     }
 
     private void RegisterMessageTypes()
