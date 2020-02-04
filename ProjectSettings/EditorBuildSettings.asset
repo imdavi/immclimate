@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scatterplot/Scatterplot.unity
+    guid: fdb70ae6a28a6b8b79c0bb3f76ca0e87
   m_configObjects: {}
