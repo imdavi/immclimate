@@ -7,116 +7,119 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class ImmVisDiscoveryManager : UnityDispatcherBehaviour
+namespace ImmVis.Discovery
 {
-    private CancellationTokenSource cancellationTokenSource = null;
-
-    public event DiscoveryFinished DiscoveryFinished;
-
-    public int DiscoveryPort = 5000;
-
-    public string MagicId = "U2bhY3XUOli9GgdUGs9ruxuXKpuj78Qi3zNT5IEkiQy5ex4UxqXZ5ZDAj9vkTyVz2GZiFXDS4bY5Ayve2HrAiB7G2jN7d5rskERyj3b5GeQAv1PYEOdD5sys";
-
-    public bool IsRunning
+    public class ImmVisDiscoveryManager : UnityDispatcherBehaviour
     {
-        get
+        private CancellationTokenSource cancellationTokenSource = null;
+
+        public event DiscoveryFinished DiscoveryFinished;
+
+        public int DiscoveryPort = 5000;
+
+        public string MagicId = "U2bhY3XUOli9GgdUGs9ruxuXKpuj78Qi3zNT5IEkiQy5ex4UxqXZ5ZDAj9vkTyVz2GZiFXDS4bY5Ayve2HrAiB7G2jN7d5rskERyj3b5GeQAv1PYEOdD5sys";
+
+        public bool IsRunning
         {
-            return cancellationTokenSource != null;
-        }
-    }
-
-    void OnApplicationQuit()
-    {
-        StopDiscovery();
-    }
-
-    public void StartDiscovery(int searchTimeoutInMilliseconds = 10000, bool shouldReturnOnFirstOccurrence = true)
-    {
-        if (cancellationTokenSource == null)
-        {
-            cancellationTokenSource = new CancellationTokenSource();
-
-            if (searchTimeoutInMilliseconds > 0)
+            get
             {
-                cancellationTokenSource.CancelAfter(searchTimeoutInMilliseconds);
+                return cancellationTokenSource != null;
             }
-
-            SearchForAvailableServers(cancellationTokenSource.Token, shouldReturnOnFirstOccurrence);
         }
-        else
-        {
-            Debug.Log("It seems that Discovery service is already running...");
-        }
-    }
 
-    public void StopDiscovery()
-    {
-        if (cancellationTokenSource != null)
+        void OnApplicationQuit()
         {
-            if (!cancellationTokenSource.IsCancellationRequested)
+            StopDiscovery();
+        }
+
+        public void StartDiscovery(int searchTimeoutInMilliseconds = 10000, bool shouldReturnOnFirstOccurrence = true)
+        {
+            if (cancellationTokenSource == null)
             {
-                cancellationTokenSource.Cancel();
-            }
-            cancellationTokenSource.Dispose();
-            cancellationTokenSource = null;
-        }
-    }
+                cancellationTokenSource = new CancellationTokenSource();
 
-    private async void SearchForAvailableServers(CancellationToken cancelationToken, bool shouldReturnOnFirstOccurrence = true)
-    {
-        var udpClient = new UdpClient(DiscoveryPort);
-
-        var availableServers = new List<string>();
-
-        while (true)
-        {
-            try
-            {
-                cancelationToken.ThrowIfCancellationRequested();
-
-                IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
-
-                var result = await udpClient.ReceiveAsync();
-
-                byte[] receivedBytes = result.Buffer;
-
-                if (receivedBytes != null)
+                if (searchTimeoutInMilliseconds > 0)
                 {
-                    var data = Encoding.ASCII.GetString(receivedBytes);
+                    cancellationTokenSource.CancelAfter(searchTimeoutInMilliseconds);
+                }
 
-                    Debug.Log("Message Received" + data.ToString());
-                    Debug.Log("Address IP Sender" + result.RemoteEndPoint.ToString());
+                SearchForAvailableServers(cancellationTokenSource.Token, shouldReturnOnFirstOccurrence);
+            }
+            else
+            {
+                Debug.Log("It seems that Discovery service is already running...");
+            }
+        }
 
-                    var splittedData = data.Split(':');
+        public void StopDiscovery()
+        {
+            if (cancellationTokenSource != null)
+            {
+                if (!cancellationTokenSource.IsCancellationRequested)
+                {
+                    cancellationTokenSource.Cancel();
+                }
+                cancellationTokenSource.Dispose();
+                cancellationTokenSource = null;
+            }
+        }
 
-                    if (splittedData.Length == 2)
+        private async void SearchForAvailableServers(CancellationToken cancelationToken, bool shouldReturnOnFirstOccurrence = true)
+        {
+            var udpClient = new UdpClient(DiscoveryPort);
+
+            var availableServers = new List<string>();
+
+            while (true)
+            {
+                try
+                {
+                    cancelationToken.ThrowIfCancellationRequested();
+
+                    IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+
+                    var result = await udpClient.ReceiveAsync();
+
+                    byte[] receivedBytes = result.Buffer;
+
+                    if (receivedBytes != null)
                     {
-                        var magic = splittedData[0];
+                        var data = Encoding.ASCII.GetString(receivedBytes);
 
-                        if (magic == MagicId)
+                        Debug.Log("Message Received" + data.ToString());
+                        Debug.Log("Address IP Sender" + result.RemoteEndPoint.ToString());
+
+                        var splittedData = data.Split(':');
+
+                        if (splittedData.Length == 2)
                         {
-                            var ip = result.RemoteEndPoint.Address.ToString();
+                            var magic = splittedData[0];
 
-                            availableServers.Add(ip);
-
-                            if (shouldReturnOnFirstOccurrence)
+                            if (magic == MagicId)
                             {
-                                break;
+                                var ip = result.RemoteEndPoint.Address.ToString();
+
+                                availableServers.Add(ip);
+
+                                if (shouldReturnOnFirstOccurrence)
+                                {
+                                    break;
+                                }
                             }
                         }
                     }
                 }
+                catch (Exception e)
+                {
+                    Debug.Log(e.ToString());
+                    break;
+                }
             }
-            catch (Exception e)
-            {
-                Debug.Log(e.ToString());
-                break;
-            }
+
+            ExecuteOnMainThread(() => { DiscoveryFinished?.Invoke(availableServers); });
+
+            udpClient.Close();
+            udpClient.Dispose();
         }
-
-        ExecuteOnMainThread(() => { DiscoveryFinished?.Invoke(availableServers); });
-
-        udpClient.Close();
-        udpClient.Dispose();
     }
 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ImmVis.Messages;
 using ImmVis.Serialization;
-
+using ImmVis.Discovery;
 
 public class DataManager : MonoBehaviour
 {
