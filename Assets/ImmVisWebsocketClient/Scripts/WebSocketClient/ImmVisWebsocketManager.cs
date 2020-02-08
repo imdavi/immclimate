@@ -3,6 +3,7 @@ using WebSocketSharp;
 using ImmVis.Serialization;
 using ImmVis.Messages;
 using ImmVis.UnityDispatcher;
+using ImmVis.Utils;
 
 namespace ImmVis.WebSocketManager
 {
