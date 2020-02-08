@@ -2,6 +2,7 @@
 using WebSocketSharp;
 using ImmVis.Serialization;
 using ImmVis.Messages;
+using ImmVis.UnityDispatcher;
 
 namespace ImmVis.WebSocketManager
 {

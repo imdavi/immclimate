@@ -3,20 +3,23 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class UnityDispatcherBehaviour : MonoBehaviour
+namespace ImmVis.UnityDispatcher
 {
-    private static Queue<Action> ActionsQueue = new Queue<Action>();
-
-    protected void ExecuteOnMainThread(Action action)
+    public abstract class UnityDispatcherBehaviour : MonoBehaviour
     {
-        ActionsQueue.Enqueue(action);
-    }
+        private static Queue<Action> ActionsQueue = new Queue<Action>();
 
-    void Update()
-    {
-        while (ActionsQueue.Count > 0)
+        protected void ExecuteOnMainThread(Action action)
         {
-            ActionsQueue.Dequeue().Invoke();
+            ActionsQueue.Enqueue(action);
+        }
+
+        void Update()
+        {
+            while (ActionsQueue.Count > 0)
+            {
+                ActionsQueue.Dequeue().Invoke();
+            }
         }
     }
 }
