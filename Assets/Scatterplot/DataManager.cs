@@ -10,7 +10,7 @@ using ImmVis.WebSocketManager;
 public class DataManager : MonoBehaviour
 {
 
-    public ImmVisWebsocketManager WebsocketManager;
+    public ImmVisWebSocketManager WebsocketManager;
 
     public ImmVisDiscoveryManager DiscoveryManager;
 

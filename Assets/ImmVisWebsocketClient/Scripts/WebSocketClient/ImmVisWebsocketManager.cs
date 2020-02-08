@@ -7,7 +7,7 @@ using ImmVis.Utils;
 
 namespace ImmVis.WebSocketManager
 {
-    public class ImmVisWebsocketManager : UnityDispatcherBehaviour
+    public class ImmVisWebSocketManager : UnityDispatcherBehaviour
     {
         public string ServerAddress;
         public int ServerPort;
