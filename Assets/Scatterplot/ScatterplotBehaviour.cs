@@ -47,7 +47,10 @@ public class ScatterplotBehaviour : MonoBehaviour
 
     void Update()
     {
-        Graphics.DrawMeshInstancedIndirect(DataPointMesh, 0, DataPointMaterial, new Bounds(Vector3.zero, new Vector3(100.0f, 100.0f, 100.0f)), argsBuffer);
+        if (DataPointMesh != null && DataPointMaterial != null)
+        {
+            Graphics.DrawMeshInstancedIndirect(DataPointMesh, 0, DataPointMaterial, new Bounds(Vector3.zero, new Vector3(100.0f, 100.0f, 100.0f)), argsBuffer);
+        }
     }
 
     void OnDisable()

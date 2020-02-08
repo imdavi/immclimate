@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using ImmVis.Messages;
 
 [JsonObject]
 public class LoadDataset : Message

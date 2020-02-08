@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using Newtonsoft.Json;
-using UnityEngine;
 using WebSocketSharp;
+using ImmVis.Messages;
 
 public class ImmVisWebsocketManager : UnityDispatcherBehaviour
 {
@@ -81,7 +77,7 @@ public class ImmVisWebsocketManager : UnityDispatcherBehaviour
 
         try
         {
-            var message = SerializationUtils.DeserializeMessage(jsonPayload);
+            var message = MessageSerializationHandler.Instance.DeserializeMessage(jsonPayload);
 
             if (message is ErrorMessage)
             {
@@ -101,7 +97,7 @@ public class ImmVisWebsocketManager : UnityDispatcherBehaviour
 
     public void Send(Message message)
     {
-        string json = SerializationUtils.SerializeObject(message);
+        string json = MessageSerializationHandler.Instance.SerializeObject(message);
         Send(json);
     }
 

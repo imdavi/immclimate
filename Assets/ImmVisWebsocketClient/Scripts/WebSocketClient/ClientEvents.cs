@@ -1,4 +1,5 @@
 using System;
+using ImmVis.Messages;
 
 public delegate void ClientConnectedAction();
 public delegate void ClientDisconnectedAction();

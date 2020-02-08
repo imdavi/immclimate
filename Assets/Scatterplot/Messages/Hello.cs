@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using ImmVis.Messages;
 
 [JsonObject]
 public class Hello : Message
@@ -8,5 +9,8 @@ public class Hello : Message
     public static string MessageType { get; } = "hello";
 
     
-    public static Message Message { get; private set; } = new Hello();
+    public static Message CreateMessage()
+    {
+        return new Hello();
+    }
 }

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using ImmVis.Messages;
 
 public class DataManager : MonoBehaviour
 {
@@ -40,7 +41,7 @@ public class DataManager : MonoBehaviour
 
     private void RegisterMessageTypes()
     {
-        SerializationUtils.RegisterMessageType<Hello>(Hello.MessageType);
+        MessageConverter.RegisterMessage(Hello.MessageType, Hello.CreateMessage);
     }
 
     private void InitializeWebsocketClient()
@@ -62,11 +63,11 @@ public class DataManager : MonoBehaviour
     private void ClientConnected()
     {
         Debug.Log("Now you can send messages!");
-        WebsocketManager.Send(LoadDataset.Create("/home/felipe/Projects/masters/python/immvis-server/example_datasets/111.csv"));
+        WebsocketManager.Send(LoadDataset.Create(@"C:\Users\felip\Projects\masters\python\immvis-server\example_datasets\111.csv"));
     }
 
     private void MessageReceived(Message message)
     {
-
+        Debug.Log($"Received message: {message} - {message.GetType()}");
     }
 }
