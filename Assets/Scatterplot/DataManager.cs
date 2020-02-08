@@ -5,6 +5,7 @@ using UnityEngine;
 using ImmVis.Messages;
 using ImmVis.Serialization;
 using ImmVis.Discovery;
+using ImmVis.WebSocketManager;
 
 public class DataManager : MonoBehaviour
 {
