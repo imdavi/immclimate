@@ -1,5 +1,6 @@
 ﻿using System;
 using WebSocketSharp;
+using ImmVis.Serialization;
 using ImmVis.Messages;
 
 public class ImmVisWebsocketManager : UnityDispatcherBehaviour
