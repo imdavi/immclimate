@@ -24,23 +24,14 @@ Shader "ImmClimate/DataPointShader"
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
             StructuredBuffer<float4> positionBuffer;
             StructuredBuffer<float4> colorBuffer;
+            float4x4 _TransformMatrix;
         #endif
-
-
-        void rotate2D(inout float2 v, float r)
-        {
-            float s, c;
-            sincos(r, s, c);
-            v = float2(v.x * c - v.y * s, v.x * s + v.y * c);
-        }
 
         void setup()
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
                 float4 data = positionBuffer[unity_InstanceID];
-
-                float rotation = data.w * data.w * _Time.y * 0.5f;
-                rotate2D(data.xz, rotation);
+                data.xyz = mul(_TransformMatrix, float4(data.xyz, 1)).xyz;
 
                 unity_ObjectToWorld._11_21_31_41 = float4(data.w, 0, 0, 0);
                 unity_ObjectToWorld._12_22_32_42 = float4(0, data.w, 0, 0);
