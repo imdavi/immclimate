@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ public class ScatterplotBehaviour : MonoBehaviour
     public Mesh DataPointMesh;
 
     public Material DataPointMaterial;
+
+    public float MinimumPointSize = 0.5f;
 
     private uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
 
@@ -23,55 +26,67 @@ public class ScatterplotBehaviour : MonoBehaviour
     private MaterialPropertyBlock block;
     private const string MATRIX_PROPERTY_NAME = "_TransformMatrix";
 
+    private const int MaxAmountOfDimensions = 5;
+
     void Start()
     {
         UpdateTransformationMatrix();
 
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
-
-        PlotFakeData();
     }
 
-    private void PlotFakeData()
+    internal void PlotData(Data data)
     {
-        int gridResolution = 50;
-
-        float size = 0.5f;
-        int pointsCount = gridResolution * gridResolution * gridResolution;
+        var values = data.Values;
+        var pointsCount = values.Length;
 
         Vector4[] positions = new Vector4[pointsCount];
+
         Vector4[] colors = new Vector4[pointsCount];
 
-        for (int i = 0, z = 0; i < gridResolution; i++)
+        for (int i = 0; i < pointsCount; i++)
         {
-            for (int j = 0; j < gridResolution; j++)
-            {
-                for (int k = 0; k < gridResolution; k++, z++)
-                {
-                    positions[z] = new Vector4(
-                        i - (gridResolution - 1) * 0.5f,
-                        j - (gridResolution - 1) * 0.5f,
-                        k - (gridResolution - 1) * 0.5f,
-                        size
-                    );
+            var point = values[i];
 
-                    colors[z] = new Vector4(
-                        (float)i / gridResolution * 0.5f,
-                        (float)j / gridResolution * 0.5f,
-                        (float)k / gridResolution * 0.5f
-                    );
+            Vector4 position = new Vector4();
+            Vector4 color = new Vector4();
+
+            for (int dimensionIndex = 0; dimensionIndex < MaxAmountOfDimensions; dimensionIndex++)
+            {
+                float value = 0.0f;
+
+                if (dimensionIndex < point.Length)
+                {
+                    value = point[dimensionIndex];
+                }
+
+                switch (dimensionIndex)
+                {
+                    case 0: // X
+                        position.x = value;
+                        break;
+                    case 1: // Y
+                        position.y = value;
+                        break;
+                    case 2: // Z
+                        position.z = value;
+                        break;
+                    case 3: // Color
+                        var pointColor = Color.HSVToRGB((value + 1) * MinimumPointSize, 1.0f, 1.0f);
+
+                        color.x = pointColor.r;
+                        color.y = pointColor.g;
+                        color.z = pointColor.b;
+                        color.w = 1.0f;
+                        break;
+                    case 4: // Size
+                        position.w = (value + 1) * MinimumPointSize;
+                        break;
                 }
             }
+            positions[i] = position;
+            colors[i] = color;
         }
-
-        // int pointsCount = 100000;
-        // for (int i = 0; i < pointsCount; i++)
-        // {
-        //     float size = Random.Range(0.05f, 0.25f);
-        //     var position = Random.insideUnitSphere * Random.Range(5.0f, 10.0f);
-        //     positions[i] = new Vector4(position.x, position.y, position.z, size);
-        //     colors[i] = new Vector4(Random.value, Random.value, Random.value, 1f);
-        // }
 
         PlotData(positions, colors);
     }
@@ -82,7 +97,8 @@ public class ScatterplotBehaviour : MonoBehaviour
         {
             block = new MaterialPropertyBlock();
         }
-        block.SetMatrix(MATRIX_PROPERTY_NAME, transform.localToWorldMatrix);
+
+        block.SetMatrix(MATRIX_PROPERTY_NAME, transform.localToWorldMatrix * Matrix4x4.Translate(new Vector3(-0.5f, -0.5f, -0.5f)));
     }
 
     void Update()

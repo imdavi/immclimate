@@ -10,11 +10,9 @@ namespace ImmVis.Serialization
     {
         public delegate Message MessageCreationDelegate();
 
-        private static Dictionary<String, MessageCreationDelegate> CreationDictionary = new Dictionary<string, MessageCreationDelegate>
-    {
-        { ErrorMessage.MessageType, () => ErrorMessage.Create() },
-        { ResponseMessage.MessageType, () => ResponseMessage.CreateInstance() }
-    };
+        private static Dictionary<String, MessageCreationDelegate> CreationDictionary = new Dictionary<string, MessageCreationDelegate>   {
+            { ErrorMessage.MessageType, () => ErrorMessage.Create() }
+        };
 
         public static void RegisterMessage(string messageType, MessageCreationDelegate factoryDelegate)
         {

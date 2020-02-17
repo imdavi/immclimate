@@ -16,12 +16,13 @@ public class DataManager : MonoBehaviour
 
     public bool ShouldUseDiscoveryService = true;
 
+    public ScatterplotBehaviour scatterplotBehaviour;
 
     void Start()
     {
         RegisterMessageTypes();
 
-        if(ShouldUseDiscoveryService && DiscoveryManager != null)
+        if (ShouldUseDiscoveryService && DiscoveryManager != null)
         {
             DiscoveryManager.DiscoveryFinished += DiscoveryFinished;
             DiscoveryManager.StartDiscovery(shouldReturnOnFirstOccurrence: true);
@@ -35,7 +36,7 @@ public class DataManager : MonoBehaviour
 
     private void DiscoveryFinished(List<string> availableServersIps)
     {
-        if(availableServersIps.Count > 0)
+        if (availableServersIps.Count > 0)
         {
             WebsocketManager.ServerAddress = availableServersIps[0];
             InitializeWebsocketClient();
@@ -45,6 +46,7 @@ public class DataManager : MonoBehaviour
     private void RegisterMessageTypes()
     {
         MessageConverter.RegisterMessage(Hello.MessageType, Hello.CreateMessage);
+        MessageConverter.RegisterMessage(LoadDatasetResult.MessageType, LoadDatasetResult.CreateMessage);
     }
 
     private void InitializeWebsocketClient()
@@ -66,11 +68,17 @@ public class DataManager : MonoBehaviour
     private void ClientConnected()
     {
         Debug.Log("Now you can send messages!");
-        WebsocketManager.Send(LoadDataset.Create(@"C:\Users\felip\Projects\masters\python\immvis-server\example_datasets\111.csv"));
+        WebsocketManager.Send(LoadDataset.Create(@"C:\Users\felip\Projects\masters\python\immvis-server\example_datasets\OndasCalor_IAC_1961_2018.csv"));
     }
 
     private void MessageReceived(Message message)
     {
         Debug.Log($"Received message: {message} - {message.GetType()}");
+
+        if (message.GetType() == typeof(LoadDatasetResult))
+        {
+            scatterplotBehaviour?.PlotData((message as LoadDatasetResult).Data);
+        }
+
     }
 }
