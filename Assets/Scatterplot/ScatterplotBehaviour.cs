@@ -6,31 +6,38 @@ using UnityEngine;
 public class ScatterplotBehaviour : MonoBehaviour
 {
     public Mesh DataPointMesh;
-
     public Material DataPointMaterial;
-
-    public float MinimumPointSize = 0.5f;
+    public Vector3 OriginPoint = new Vector3(-0.5f, -0.5f, -0.5f);
+    public float PointMinimumSize = 0.5f;
+    public float ColorMultiplier = 0.5f;
 
     private uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
 
-    private ComputeBuffer positionBuffer;
+    private ComputeBuffer positionsBuffer;
     private ComputeBuffer argsBuffer;
-    private ComputeBuffer colorBuffer;
+    private ComputeBuffer colorsBuffer;
+    private ComputeBuffer sizesBuffer;
 
-    private const int BUFFER_STRIDE = 16;
+    private const int FLOAT_STRIDE = 4;
 
-    private const string POSITIONS_BUFFER_NAME = "positionBuffer";
+    private const int VECTOR4_BUFFER_STRIDE = FLOAT_STRIDE * 4;
 
-    private const string COLORS_BUFFER_NAME = "colorBuffer";
+    private const int VECTOR3_BUFFER_STRIDE = FLOAT_STRIDE * 3;
+
+    private const string POSITIONS_BUFFER_NAME = "positionsBuffer";
+
+    private const string SIZES_BUFFER_NAME = "sizesBuffer";
+
+    private const string COLORS_BUFFER_NAME = "colorsBuffer";
 
     private MaterialPropertyBlock block;
     private const string MATRIX_PROPERTY_NAME = "_TransformMatrix";
-
+    private const string POINT_MINIMUM_SIZE_PROPERTY_NAME = "_PointMinimumSize";
     private const int MaxAmountOfDimensions = 5;
 
     void Start()
     {
-        UpdateTransformationMatrix();
+        UpdateMaterialProperties();
 
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
     }
@@ -40,16 +47,19 @@ public class ScatterplotBehaviour : MonoBehaviour
         var values = data.Values;
         var pointsCount = values.Length;
 
-        Vector4[] positions = new Vector4[pointsCount];
+        Vector3[] positions = new Vector3[pointsCount];
 
         Vector4[] colors = new Vector4[pointsCount];
+
+        float[] sizes = new float[pointsCount];
 
         for (int i = 0; i < pointsCount; i++)
         {
             var point = values[i];
 
-            Vector4 position = new Vector4();
+            Vector3 position = new Vector3();
             Vector4 color = new Vector4();
+            float size = 0.0f;
 
             for (int dimensionIndex = 0; dimensionIndex < MaxAmountOfDimensions; dimensionIndex++)
             {
@@ -72,7 +82,7 @@ public class ScatterplotBehaviour : MonoBehaviour
                         position.z = value;
                         break;
                     case 3: // Color
-                        var pointColor = Color.HSVToRGB((value + 1) * MinimumPointSize, 1.0f, 1.0f);
+                        var pointColor = Color.HSVToRGB((value + 1) * ColorMultiplier, 1.0f, 1.0f);
 
                         color.x = pointColor.r;
                         color.y = pointColor.g;
@@ -80,30 +90,32 @@ public class ScatterplotBehaviour : MonoBehaviour
                         color.w = 1.0f;
                         break;
                     case 4: // Size
-                        position.w = (value + 1) * MinimumPointSize;
+                        size = value;
                         break;
                 }
             }
             positions[i] = position;
             colors[i] = color;
+            sizes[i] = size;
         }
 
-        PlotData(positions, colors);
+        PlotData(positions, colors, sizes);
     }
 
-    public void UpdateTransformationMatrix()
+    public void UpdateMaterialProperties()
     {
         if (block == null)
         {
             block = new MaterialPropertyBlock();
         }
 
-        block.SetMatrix(MATRIX_PROPERTY_NAME, transform.localToWorldMatrix * Matrix4x4.Translate(new Vector3(-0.5f, -0.5f, -0.5f)));
+        block.SetMatrix(MATRIX_PROPERTY_NAME, transform.localToWorldMatrix * Matrix4x4.Translate(OriginPoint));
+        block.SetFloat(POINT_MINIMUM_SIZE_PROPERTY_NAME, PointMinimumSize);
     }
 
     void Update()
     {
-        UpdateTransformationMatrix();
+        UpdateMaterialProperties();
 
         if (DataPointMesh != null && DataPointMaterial != null)
         {
@@ -121,19 +133,22 @@ public class ScatterplotBehaviour : MonoBehaviour
 
     void OnDisable()
     {
-        if (positionBuffer != null) positionBuffer.Release();
-        positionBuffer = null;
+        if (positionsBuffer != null) positionsBuffer.Release();
+        positionsBuffer = null;
 
-        if (colorBuffer != null) colorBuffer.Release();
-        colorBuffer = null;
+        if (colorsBuffer != null) colorsBuffer.Release();
+        colorsBuffer = null;
+
+        if (sizesBuffer != null) sizesBuffer.Release();
+        sizesBuffer = null;
 
         if (argsBuffer != null) argsBuffer.Release();
         argsBuffer = null;
     }
 
-    void PlotData(Vector4[] positions, Vector4[] colors)
+    void PlotData(Vector3[] positions, Vector4[] colors, float[] sizes)
     {
-        if (positions.Length != colors.Length)
+        if (positions.Length != colors.Length || positions.Length != sizes.Length)
         {
             Debug.Log("Make sure that positions and colors have the same length before plotting.");
             return;
@@ -141,17 +156,20 @@ public class ScatterplotBehaviour : MonoBehaviour
 
         var pointsCount = positions.Length;
 
-        if (positionBuffer != null) positionBuffer.Release();
-        if (colorBuffer != null) colorBuffer.Release();
+        if (positionsBuffer != null) positionsBuffer.Release();
+        if (colorsBuffer != null) colorsBuffer.Release();
 
-        positionBuffer = new ComputeBuffer(pointsCount, BUFFER_STRIDE);
-        colorBuffer = new ComputeBuffer(pointsCount, BUFFER_STRIDE);
+        positionsBuffer = new ComputeBuffer(pointsCount, VECTOR3_BUFFER_STRIDE);
+        colorsBuffer = new ComputeBuffer(pointsCount, VECTOR4_BUFFER_STRIDE);
+        sizesBuffer = new ComputeBuffer(pointsCount, FLOAT_STRIDE);
 
-        positionBuffer.SetData(positions);
-        colorBuffer.SetData(colors);
+        positionsBuffer.SetData(positions);
+        colorsBuffer.SetData(colors);
+        sizesBuffer.SetData(sizes);
 
-        DataPointMaterial.SetBuffer(POSITIONS_BUFFER_NAME, positionBuffer);
-        DataPointMaterial.SetBuffer(COLORS_BUFFER_NAME, colorBuffer);
+        DataPointMaterial.SetBuffer(POSITIONS_BUFFER_NAME, positionsBuffer);
+        DataPointMaterial.SetBuffer(COLORS_BUFFER_NAME, colorsBuffer);
+        DataPointMaterial.SetBuffer(SIZES_BUFFER_NAME, sizesBuffer);
 
         uint numIndices = (DataPointMesh != null) ? (uint)DataPointMesh.GetIndexCount(0) : 0;
         args[0] = numIndices;

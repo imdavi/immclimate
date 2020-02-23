@@ -22,20 +22,25 @@ Shader "ImmClimate/DataPointShader"
         };
 
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            StructuredBuffer<float4> positionBuffer;
-            StructuredBuffer<float4> colorBuffer;
+            StructuredBuffer<float3> positionsBuffer;
+            StructuredBuffer<float4> colorsBuffer;
+            StructuredBuffer<float> sizesBuffer;
             float4x4 _TransformMatrix;
+            float _PointMinimumSize;
         #endif
 
         void setup()
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                float4 data = positionBuffer[unity_InstanceID];
+                float3 data = positionsBuffer[unity_InstanceID];
                 data.xyz = mul(_TransformMatrix, float4(data.xyz, 1)).xyz;
 
-                unity_ObjectToWorld._11_21_31_41 = float4(data.w, 0, 0, 0);
-                unity_ObjectToWorld._12_22_32_42 = float4(0, data.w, 0, 0);
-                unity_ObjectToWorld._13_23_33_43 = float4(0, 0, data.w, 0);
+                float pointSize = sizesBuffer[unity_InstanceID];
+                float pointPlotSize = _PointMinimumSize * (pointSize + 1);
+
+                unity_ObjectToWorld._11_21_31_41 = float4(pointPlotSize, 0, 0, 0);
+                unity_ObjectToWorld._12_22_32_42 = float4(0, pointPlotSize, 0, 0);
+                unity_ObjectToWorld._13_23_33_43 = float4(0, 0, pointPlotSize, 0);
                 unity_ObjectToWorld._14_24_34_44 = float4(data.xyz, 1);
                 unity_WorldToObject = unity_ObjectToWorld;
                 unity_WorldToObject._14_24_34 *= -1;
@@ -51,12 +56,10 @@ Shader "ImmClimate/DataPointShader"
             float4 col = 1.0f;
 
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                col = colorBuffer[unity_InstanceID];
+                col = colorsBuffer[unity_InstanceID];
             #else
                 col = float4(0, 0, 1, 1);
             #endif
-
-
 
             fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * col;
             o.Albedo = c.rgb;
