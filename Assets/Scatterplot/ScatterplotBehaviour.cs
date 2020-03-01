@@ -146,7 +146,7 @@ public class ScatterplotBehaviour : MonoBehaviour
         argsBuffer = null;
     }
 
-    void PlotData(Vector3[] positions, Vector4[] colors, float[] sizes)
+    private void PlotData(Vector3[] positions, Vector4[] colors, float[] sizes)
     {
         if (positions.Length != colors.Length || positions.Length != sizes.Length)
         {

@@ -77,7 +77,8 @@ public class DataManager : MonoBehaviour
 
         if (message.GetType() == typeof(LoadDatasetResult))
         {
-            scatterplotBehaviour?.PlotData((message as LoadDatasetResult).Data);
+            var data = (message as LoadDatasetResult).Data;
+            scatterplotBehaviour?.PlotData(data);
         }
 
     }

@@ -6,6 +6,7 @@ public class Data
     [JsonProperty("columns")] private string[] columns;
     [JsonProperty("columns_types")] private string[] columnsTypes;
     [JsonProperty("values")] private float[][] values;
+    [JsonProperty("axis_labels")] private string[][] axisLabels;
 
     [JsonIgnore]
     public string[] Columns
@@ -23,5 +24,11 @@ public class Data
     public float[][] Values
     {
         get { return values; }
+    }
+
+    [JsonIgnore]
+    public string[][] AxisLabels
+    {
+        get { return axisLabels; }
     }
 }
