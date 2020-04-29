@@ -47,6 +47,7 @@ public class DataManager : MonoBehaviour
     {
         MessageConverter.RegisterMessage(Hello.MessageType, Hello.CreateMessage);
         MessageConverter.RegisterMessage(LoadDatasetResult.MessageType, LoadDatasetResult.CreateMessage);
+        MessageConverter.RegisterMessage(ListAvailableDatasetsResult.MessageType, ListAvailableDatasetsResult.CreateMessage);
     }
 
     private void InitializeWebsocketClient()
@@ -68,7 +69,7 @@ public class DataManager : MonoBehaviour
     private void ClientConnected()
     {
         Debug.Log("Now you can send messages!");
-        WebsocketManager.Send(LoadDataset.Create(@"C:\Users\felip\Projects\masters\python\immvis-server\example_datasets\OndasCalor_IAC_1961_2018.csv"));
+        WebsocketManager.Send(ListAvailableDatasets.Create());
     }
 
     private void MessageReceived(Message message)
@@ -79,7 +80,14 @@ public class DataManager : MonoBehaviour
         {
             var data = (message as LoadDatasetResult).Data;
             scatterplotBehaviour?.PlotData(data);
-        }
+        } else if (message.GetType() == typeof(ListAvailableDatasetsResult)){
+            var data = (message as ListAvailableDatasetsResult).Data;
 
+            if(data.Length > 0) {
+                WebsocketManager.Send(LoadDataset.Create(data[0]));
+            } else {
+                Debug.Log("No datasets available :(");
+            }
+        }
     }
 }
