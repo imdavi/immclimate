@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DataPointMaterial
+  m_Name: ScatterplotMaterial
   m_Shader: {fileID: 4800000, guid: d9cfb50a03dfe6855830fa1c3c5c42a1, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4

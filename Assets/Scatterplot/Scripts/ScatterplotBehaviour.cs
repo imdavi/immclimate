@@ -11,6 +11,9 @@ public class ScatterplotBehaviour : MonoBehaviour
     public float PointMinimumSize = 0.5f;
     public float ColorMultiplier = 0.5f;
 
+    [Range(0.0f, 1.0f)]
+    public float FilterY = 1.0f;
+
     private uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
 
     private ComputeBuffer positionsBuffer;
@@ -33,6 +36,7 @@ public class ScatterplotBehaviour : MonoBehaviour
     private MaterialPropertyBlock block;
     private const string MATRIX_PROPERTY_NAME = "_TransformMatrix";
     private const string POINT_MINIMUM_SIZE_PROPERTY_NAME = "_PointMinimumSize";
+    private const string FILTER_Y = "_FilterY";
     private const int MaxAmountOfDimensions = 5;
 
     void Start()
@@ -111,6 +115,7 @@ public class ScatterplotBehaviour : MonoBehaviour
 
         block.SetMatrix(MATRIX_PROPERTY_NAME, transform.localToWorldMatrix * Matrix4x4.Translate(OriginPoint));
         block.SetFloat(POINT_MINIMUM_SIZE_PROPERTY_NAME, PointMinimumSize);
+        block.SetFloat(FILTER_Y, FilterY);
     }
 
     void Update()
